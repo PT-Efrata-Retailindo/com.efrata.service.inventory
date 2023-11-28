@@ -160,7 +160,7 @@ namespace Com.Efrata.Service.Inventory.WebApi.Controllers.v1.GarmentLeftoverWare
             }
         }
         [HttpGet("finishedgood")]
-        public IActionResult GetReportStockFinishedGood(DateTime? dateFrom, DateTime? dateTo, int unit, int page, int size, string Order = "{}")
+        public IActionResult GetReportStockFinishedGood(DateTime? dateFrom, DateTime? dateTo, int unit, string ro, int page, int size, string Order = "{}")
         {
             try
             {
@@ -172,7 +172,7 @@ namespace Com.Efrata.Service.Inventory.WebApi.Controllers.v1.GarmentLeftoverWare
                     page = 1;
                     size = 25;
                 }
-                var data = Service.GetMonitoringFinishedGood(dateFrom, dateTo, unit, page, size, Order, offset);
+                var data = Service.GetMonitoringFinishedGood(dateFrom, dateTo, unit, ro, page, size, Order, offset);
 
                 return Ok(new
                 {

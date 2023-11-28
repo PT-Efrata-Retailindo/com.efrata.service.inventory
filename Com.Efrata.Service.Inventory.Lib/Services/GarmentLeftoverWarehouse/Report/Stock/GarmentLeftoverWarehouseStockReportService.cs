@@ -38,7 +38,7 @@ namespace Com.Efrata.Service.Inventory.Lib.Services.GarmentLeftoverWarehouse.Rep
             GarmentExpenditureGoodUri = APIEndpoint.GarmentProduction + "expenditure-goods/traceable-by-ro";
         }
         #region REPORT
-        public IQueryable<GarmentLeftoverWarehouseStockMonitoringViewModel> GetReportQuery(DateTime? dateFrom, DateTime? dateTo, int UnitId, string type, int offset, string typeAval = "")
+        public IQueryable<GarmentLeftoverWarehouseStockMonitoringViewModel> GetReportQuery(DateTime? dateFrom, DateTime? dateTo, int UnitId, string type, int offset, string typeAval = "", string ro="")
         {
 
             DateTimeOffset DateFrom = dateFrom == null ? new DateTime(1970, 1, 1) : (DateTimeOffset)dateFrom;
@@ -174,7 +174,8 @@ namespace Com.Efrata.Service.Inventory.Lib.Services.GarmentLeftoverWarehouse.Rep
                                               where data._IsDeleted == false && data.TypeOfGoods.ToString() == "BARANG JADI"
                                               select new { data._CreatedUtc, data.Id })
                                    join b in DbContext.GarmentLeftoverWarehouseBalanceStocksItems on a.Id equals b.BalanceStockId
-                                   where b.UnitId == (UnitId == 0 ? b.UnitId : UnitId)
+                                   where b.UnitId == (UnitId == 0 ? b.UnitId : UnitId) 
+                                         && b.RONo==( string.IsNullOrEmpty(ro) ? b.RONo : ro)
                                    select new GarmentLeftoverWarehouseStockMonitoringViewModel
                                    {
                                        RO = b.RONo,
@@ -198,6 +199,7 @@ namespace Com.Efrata.Service.Inventory.Lib.Services.GarmentLeftoverWarehouse.Rep
                                          && data.UnitFromId == (UnitId == 0 ? data.UnitFromId : UnitId)
                                               select new { data.UnitFromCode, data.ReceiptDate, data.Id })
                                    join b in DbContext.GarmentLeftoverWarehouseReceiptFinishedGoodItems on a.Id equals b.FinishedGoodReceiptId
+                                   where b.RONo == (string.IsNullOrEmpty(ro) ? b.RONo : ro)
                                    select new GarmentLeftoverWarehouseStockMonitoringViewModel
                                    {
                                        RO = b.RONo,
@@ -220,7 +222,8 @@ namespace Com.Efrata.Service.Inventory.Lib.Services.GarmentLeftoverWarehouse.Rep
                                                         && data.ExpenditureDate.AddHours(offset).Date <= DateTo.Date
                                                   select new { data.ExpenditureDate, data.Id })
                                        join b in (from expend in DbContext.GarmentLeftoverWarehouseExpenditureFinishedGoodItems
-                                                  where expend.UnitId == (UnitId == 0 ? expend.UnitId : UnitId)
+                                                  where expend.UnitId == (UnitId == 0 ? expend.UnitId : UnitId) 
+                                                  && expend.RONo == (string.IsNullOrEmpty(ro) ? expend.RONo : ro)
                                                   select new { expend.FinishedGoodExpenditureId, expend.UnitCode, expend.ExpenditureQuantity, expend.RONo, expend.LeftoverComodityName }
                                                   ) on a.Id equals b.FinishedGoodExpenditureId
                                        select new GarmentLeftoverWarehouseStockMonitoringViewModel
@@ -751,9 +754,9 @@ namespace Com.Efrata.Service.Inventory.Lib.Services.GarmentLeftoverWarehouse.Rep
 
         }
 
-        public Tuple<List<GarmentLeftoverWarehouseStockMonitoringViewModel>, int> GetMonitoringFinishedGood(DateTime? dateFrom, DateTime? dateTo, int unitId, int page, int size, string order, int offset)
+        public Tuple<List<GarmentLeftoverWarehouseStockMonitoringViewModel>, int> GetMonitoringFinishedGood(DateTime? dateFrom, DateTime? dateTo, int unitId, string ro, int page, int size, string order, int offset)
         {
-            var Query = GetReportQuery(dateFrom, dateTo, unitId, "Barang Jadi", offset);
+            var Query = GetReportQuery(dateFrom, dateTo, unitId, "Barang Jadi", offset, "", ro);
 
             Dictionary<string, string> OrderDictionary = JsonConvert.DeserializeObject<Dictionary<string, string>>(order);
             if (OrderDictionary.Count.Equals(0))
